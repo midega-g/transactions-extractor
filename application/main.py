@@ -11,7 +11,7 @@ st.markdown(
   """
   ### How to Use
   1. **Extract Data from PDF**: Upload the COOP Bank's transaction PDF file, extract transaction data, filter it by desired dates, and export it to an Excel file.
-  2. **Validate and Upload Excel File**: Upload a validated Excel file, which should contain the same data as the extracted data, and compute aggregates.
+  2. **Generate Aggregates from Excel**: Upload a validated Excel file, which should contain the same data as the extracted data, and compute aggregates.
   """
 )
 
