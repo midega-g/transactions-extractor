@@ -49,3 +49,33 @@ def filter_dataframe_by_date(df, start_date, end_date):
     Filters the DataFrame based on a date range.
     """
     return df[(df['Posting Date'] >= start_date) & (df['Posting Date'] <= end_date)]
+
+
+def compute_aggregates(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Computes the aggregate sum of the 'Credit Amount' column grouped by 'Narration',
+    and renames the columns to 'Member' and 'Amount'.
+
+    Parameters:
+    -----------
+    df : pd.DataFrame
+        The input DataFrame containing at least the columns 'Narration' and 'Credit Amount'.
+
+    Returns:
+    --------
+    pd.DataFrame
+        A DataFrame containing the aggregate sum of 'Credit Amount' grouped by 'Narration',
+        with columns renamed to 'Member' and 'Amount'.
+    """
+    # Ensure necessary columns are present
+    if 'Narration' not in df.columns or 'Credit Amount' not in df.columns:
+        raise ValueError("The input DataFrame must contain 'Narration' and 'Credit Amount' columns.")
+    
+    # Group by 'Narration' and compute the sum of 'Credit Amount'
+    result = df.groupby(['Narration'])['Credit Amount'].sum().reset_index()
+    
+    # Rename columns to 'Member' and 'Amount'
+    result.columns = ['Member', 'Amount']
+    
+    return result
+
