@@ -16,21 +16,47 @@ def extract_name(narration):
     return narration
 
 
-def read_pdf_to_dataframe(pdf_path):
+def read_pdf_to_dataframe(pdf_path, password=None):
     """
-    Reads a PDF file and extracts tables into a Pandas DataFrame.
+    Reads a PDF file and extracts tables into a Pandas DataFrame, with optional password handling.
+
+    Parameters:
+    -----------
+    pdf_path : str or file-like object
+        The path to the PDF file or a file-like object (for Streamlit upload).
+    password : str, optional
+        The password required to open the PDF, if it is password-protected.
+
+    Returns:
+    --------
+    pd.DataFrame
+        A DataFrame containing extracted tables from the PDF.
+
+    Raises:
+    -------
+    ValueError
+        If no tables are found in the PDF or if incorrect password is provided.
     """
     combined_df = pd.DataFrame()
-    with pdfplumber.open(pdf_path) as pdf:
-        for page in pdf.pages:
-            table = page.extract_table()
-            if table:
-                df = pd.DataFrame(table[1:], columns=table[0])
-                if 'Narration' in df.columns:
-                    df = df[~df['Narration'].str.contains(r'mobile wallet|maint fee|excise charges', case=False, na=False)]
-                    df['Narration'] = df['Narration'].apply(extract_name)
-                combined_df = pd.concat([combined_df, df], ignore_index=True)
-    return combined_df
+
+    try:
+        with pdfplumber.open(pdf_path, password=password) as pdf:
+            for page in pdf.pages:
+                table = page.extract_table()
+                if table:
+                    df = pd.DataFrame(table[1:], columns=table[0])
+                    if 'Narration' in df.columns:
+                        # Filter out unwanted rows based on 'Narration'
+                        df = df[~df['Narration'].str.contains(r'mobile wallet|maint fee|excise charges', case=False, na=False)]
+                        # Apply name extraction on 'Narration'
+                        df['Narration'] = df['Narration'].apply(extract_name)
+                    combined_df = pd.concat([combined_df, df], ignore_index=True)
+        if combined_df.empty:
+            raise ValueError("No tables found in the PDF.")
+        return combined_df
+
+    except pdfplumber.PasswordError as e:
+        raise ValueError("Incorrect password or unable to open the PDF.") from e
 
 
 def process_dataframe(df):

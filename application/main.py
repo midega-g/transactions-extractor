@@ -2,8 +2,7 @@ import io
 import pandas as pd
 import streamlit as st
 from datetime import datetime
-import pdfplumber
-from util_funcs.pre_process import process_dataframe, filter_dataframe_by_date, compute_aggregates
+from util_funcs.pre_process import read_pdf_to_dataframe, process_dataframe, filter_dataframe_by_date, compute_aggregates
 
 st.set_page_config(layout="wide", page_title="PDF and Excel Data Processor")
 
@@ -27,14 +26,8 @@ if uploaded_pdf is not None:
     password = st.text_input("Enter PDF password (if required)", type="password")
 
     try:
-        with pdfplumber.open(uploaded_pdf, password=password) as pdf:
-            st.success("PDF opened successfully! Processing...")
-
-            extracted_data = pd.concat(
-                [pd.DataFrame(page.extract_table()[1:], columns=page.extract_table()[0]) 
-                 for page in pdf.pages if page.extract_table()],
-                ignore_index=True
-            )
+        extracted_data = read_pdf_to_dataframe(uploaded_pdf, password=password)
+        st.success("PDF processed successfully!")
 
         if not extracted_data.empty:
             processed_data = process_dataframe(extracted_data)
@@ -69,8 +62,9 @@ if uploaded_pdf is not None:
         else:
             st.warning("No data found in the uploaded PDF. Please check the file.")
     
-    except Exception as e:
-        st.error(f"Failed to open the PDF. Please check if the password is correct. Error: {e}")
+    except ValueError as e:
+        st.error(f"Failed to process the PDF. {e}")
+
 
 st.markdown("---")
 
